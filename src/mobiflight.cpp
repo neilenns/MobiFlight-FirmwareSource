@@ -196,8 +196,9 @@ void setup()
 
   attachCommandCallbacks();
   cmdMessenger.printLfCr();
+
 #ifdef FIXED_CONFIG
-  _storeConfig();
+  // _storeConfig();
 #endif
   OnResetBoard();
   // Time Gap between Inputs, do not read at the same loop
