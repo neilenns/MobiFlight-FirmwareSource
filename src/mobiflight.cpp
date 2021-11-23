@@ -8,6 +8,8 @@ char foo;
 #include <Arduino.h>
 #endif
 
+#include "PinNames.h"
+
 #include "mobiflight.h"
 #include <MFBoards.h>
 
@@ -75,7 +77,6 @@ uint16_t configLength = 0;
 boolean configActivated = false;
 
 bool powerSavingMode = false;
-uint8_t pinsRegistered[MODULE_MAX_PINS + 1];
 const unsigned long POWER_SAVING_TIME = 60 * 15; // in seconds
 
 CmdMessenger cmdMessenger = CmdMessenger(Serial);
@@ -179,7 +180,6 @@ void OnResetBoard()
   MFeeprom.init();
   configBuffer[0] = '\0';
   generateSerial(false);
-  clearRegisteredPins();
   lastCommand = millis();
   loadConfig();
   _restoreName();
@@ -294,44 +294,13 @@ void loop()
 #endif
 }
 
-bool isPinRegistered(uint8_t pin)
-{
-  return pinsRegistered[pin] != kTypeNotSet;
-}
-
-bool isPinRegisteredForType(uint8_t pin, uint8_t type)
-{
-  return pinsRegistered[pin] == type;
-}
-
-void registerPin(uint8_t pin, uint8_t type)
-{
-  pinsRegistered[pin] = type;
-}
-
-void clearRegisteredPins(uint8_t type)
-{
-  for (int i = 0; i != MODULE_MAX_PINS + 1; ++i)
-    if (pinsRegistered[i] == type)
-      pinsRegistered[i] = kTypeNotSet;
-}
-
-void clearRegisteredPins()
-{
-  for (int i = 0; i != MODULE_MAX_PINS + 1; ++i)
-    pinsRegistered[i] = kTypeNotSet;
-}
-
 //// OUTPUT /////
 void AddOutput(uint8_t pin = 1, char const *name = "Output")
 {
   if (outputsRegistered == MAX_OUTPUTS)
     return;
-  if (isPinRegistered(pin))
-    return;
 
   outputs[outputsRegistered] = MFOutput(pin);
-  registerPin(pin, kTypeOutput);
   outputsRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added output"));
@@ -340,7 +309,6 @@ void AddOutput(uint8_t pin = 1, char const *name = "Output")
 
 void ClearOutputs()
 {
-  clearRegisteredPins(kTypeOutput);
   outputsRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared outputs"));
@@ -353,14 +321,10 @@ void AddButton(uint8_t pin = 1, char const *name = "Button")
   if (buttonsRegistered == MAX_BUTTONS)
     return;
 
-  if (isPinRegistered(pin))
-    return;
-
   buttons[buttonsRegistered] = MFButton(pin, name);
   buttons[buttonsRegistered].attachHandler(btnOnRelease, handlerOnRelease);
   buttons[buttonsRegistered].attachHandler(btnOnPress, handlerOnRelease);
 
-  registerPin(pin, kTypeButton);
   buttonsRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added button ") /* + name */);
@@ -381,8 +345,6 @@ void AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, ch
 {
   if (encodersRegistered == MAX_ENCODERS)
     return;
-  if (isPinRegistered(pin1) || isPinRegistered(pin2))
-    return;
 
   encoders[encodersRegistered] = MFEncoder();
   encoders[encodersRegistered].attach(pin1, pin2, encoder_type, name);
@@ -391,8 +353,6 @@ void AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, ch
   encoders[encodersRegistered].attachHandler(encRight, handlerOnEncoder);
   encoders[encodersRegistered].attachHandler(encRightFast, handlerOnEncoder);
 
-  registerPin(pin1, kTypeEncoder);
-  registerPin(pin2, kTypeEncoder);
   encodersRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added encoder"));
@@ -575,11 +535,7 @@ void AddAnalog(uint8_t pin = 1, char const *name = "AnalogInput", uint8_t sensit
   if (analogRegistered == MAX_ANALOG_INPUTS)
     return;
 
-  if (isPinRegistered(pin))
-    return;
-
   analog[analogRegistered] = MFAnalog(pin, handlerOnAnalogChange, name, sensitivity);
-  registerPin(pin, kTypeAnalogInput);
   analogRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added analog device "));
@@ -900,17 +856,16 @@ void OnGetInfo()
 
 void OnGetConfig()
 {
-  char singleConfig[20];
-  lastCommand = millis();
-  cmdMessenger.sendCmd(kStatus, "Hello from getconfig");
-  cmdMessenger.sendCmdStart(kInfo);
+  char singleModule[20] = "";
 
-  for (auto i = 0; i < 5; i++)
+  lastCommand = millis();
+  cmdMessenger.sendCmdStart(kInfo);
+  cmdMessenger.sendFieldSeparator();
+  for (auto i = 0; i < 69; i++)
   {
-    snprintf(singleConfig, 20, "1.%d.%d:", i, i);
-    cmdMessenger.sendArg(singleConfig);
+    snprintf(singleModule, 20, "1.%i.%s:", i, pinNames[i]);
+    cmdMessenger.sendArg(singleModule);
   }
-  // cmdMessenger.sendCmdArg(MFeeprom.read_char(MEM_OFFSET_CONFIG));
   // for (uint16_t i = 1; i < configLength; i++)
   // {
   //   cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG + i));

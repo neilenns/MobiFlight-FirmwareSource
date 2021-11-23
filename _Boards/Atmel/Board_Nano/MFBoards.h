@@ -22,14 +22,14 @@
 
 #define MODULE_MAX_PINS 80
 #define MAX_OUTPUTS 8
-#define MAX_BUTTONS 80
-#define MAX_LEDSEGMENTS 1
-#define MAX_ENCODERS 2
-#define MAX_STEPPERS 2
-#define MAX_MFSERVOS 2
-#define MAX_MFLCD_I2C 2
+#define MAX_BUTTONS 1
+#define MAX_LEDSEGMENTS 0
+#define MAX_ENCODERS 0
+#define MAX_STEPPERS 0
+#define MAX_MFSERVOS 0
+#define MAX_MFLCD_I2C 0
 #define MAX_ANALOG_INPUTS 2
-#define MAX_SHIFTERS 4
+#define MAX_SHIFTERS 0
 
 #define STEPS 64
 #define STEPPER_SPEED 400 // 300 already worked, 467, too?
