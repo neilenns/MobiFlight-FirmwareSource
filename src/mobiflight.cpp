@@ -69,11 +69,7 @@ char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
 char name[MEM_LEN_NAME] = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG = MEMLEN_CONFIG;
 
-#ifdef FIXED_CONFIG
-char configBuffer[MEM_LEN_CONFIG] = STR_VALUE(FIXED_CONFIG);
-#else
 char configBuffer[MEM_LEN_CONFIG] = "";
-#endif
 
 uint16_t configLength = 0;
 boolean configActivated = false;
@@ -180,6 +176,7 @@ void attachCommandCallbacks()
 
 void OnResetBoard()
 {
+  MFeeprom.init();
   configBuffer[0] = '\0';
   generateSerial(false);
   clearRegisteredPins();
@@ -192,14 +189,10 @@ void OnResetBoard()
 void setup()
 {
   Serial.begin(115200);
-  MFeeprom.init();
 
   attachCommandCallbacks();
   cmdMessenger.printLfCr();
 
-#ifdef FIXED_CONFIG
-  // _storeConfig();
-#endif
   OnResetBoard();
   // Time Gap between Inputs, do not read at the same loop
   lastAnalogAverage = millis() + 4;
@@ -907,13 +900,21 @@ void OnGetInfo()
 
 void OnGetConfig()
 {
+  char singleConfig[20];
   lastCommand = millis();
+  cmdMessenger.sendCmd(kStatus, "Hello from getconfig");
   cmdMessenger.sendCmdStart(kInfo);
-  cmdMessenger.sendCmdArg(MFeeprom.read_char(MEM_OFFSET_CONFIG));
-  for (uint16_t i = 1; i < configLength; i++)
+
+  for (auto i = 0; i < 5; i++)
   {
-    cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG + i));
+    snprintf(singleConfig, 20, "1.%d.%d:", i, i);
+    cmdMessenger.sendArg(singleConfig);
   }
+  // cmdMessenger.sendCmdArg(MFeeprom.read_char(MEM_OFFSET_CONFIG));
+  // for (uint16_t i = 1; i < configLength; i++)
+  // {
+  //   cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG + i));
+  // }
   cmdMessenger.sendCmdEnd();
 }
 
