@@ -61,7 +61,7 @@ const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIA
 
 uint32_t lastAnalogAverage = 0;
 uint32_t lastAnalogRead = 0;
-uint32_t lastButtonUpdate= 0;
+uint32_t lastButtonUpdate = 0;
 uint32_t lastEncoderUpdate = 0;
 
 const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
@@ -69,7 +69,11 @@ char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
 char name[MEM_LEN_NAME] = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG = MEMLEN_CONFIG;
 
+#ifdef FIXED_CONFIG
+char configBuffer[MEM_LEN_CONFIG] = STR_VALUE(FIXED_CONFIG);
+#else
 char configBuffer[MEM_LEN_CONFIG] = "";
+#endif
 
 uint16_t configLength = 0;
 boolean configActivated = false;
@@ -176,7 +180,6 @@ void attachCommandCallbacks()
 
 void OnResetBoard()
 {
-  MFeeprom.init();
   configBuffer[0] = '\0';
   generateSerial(false);
   clearRegisteredPins();
@@ -189,14 +192,19 @@ void OnResetBoard()
 void setup()
 {
   Serial.begin(115200);
+  MFeeprom.init();
+
   attachCommandCallbacks();
   cmdMessenger.printLfCr();
+#ifdef FIXED_CONFIG
+  _storeConfig();
+#endif
   OnResetBoard();
   // Time Gap between Inputs, do not read at the same loop
   lastAnalogAverage = millis() + 4;
   lastAnalogRead = millis() + 4;
-  lastButtonUpdate= millis();
-  lastEncoderUpdate = millis() +2;
+  lastButtonUpdate = millis();
+  lastEncoderUpdate = millis() + 2;
 }
 
 void generateSerial(bool force)
@@ -208,7 +216,8 @@ void generateSerial(bool force)
   sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
   sprintf(&serial[7], "%03x", (unsigned int)random(4095));
   MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
-  if (!force) MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);           // First byte of config to 0x00 to ensure to start 1st time with empty config, but not if forced from the connector to generate a new one
+  if (!force)
+    MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00); // First byte of config to 0x00 to ensure to start 1st time with empty config, but not if forced from the connector to generate a new one
 }
 
 void loadConfig()
@@ -660,6 +669,13 @@ void OnSetConfig()
 #endif
   lastCommand = millis();
   char *cfg = cmdMessenger.readStringArg();
+
+#ifdef FIXED_CONFIG
+  // For fixed configs just pretend that we took the config sent and are ready to take more.
+  cmdMessenger.sendCmd(kStatus, configLength);
+  return;
+#endif
+
   uint8_t cfgLen = strlen(cfg);
   uint16_t bufferSize = MEM_LEN_CONFIG - (configLength + cfgLen);
 
@@ -678,6 +694,10 @@ void OnSetConfig()
 
 void resetConfig()
 {
+#ifdef FIXED_CONFIG
+  return;
+#endif
+
   ClearButtons();
   ClearEncoders();
   ClearOutputs();
@@ -736,7 +756,8 @@ void _activateConfig()
 
 void readConfig()
 {
-  if (configLength == 0) return;
+  if (configLength == 0)
+    return;
   char *p = NULL;
 
   char *command = strtok_r(configBuffer, ".", &p);
@@ -888,8 +909,9 @@ void OnGetConfig()
   lastCommand = millis();
   cmdMessenger.sendCmdStart(kInfo);
   cmdMessenger.sendCmdArg(MFeeprom.read_char(MEM_OFFSET_CONFIG));
-  for (uint16_t i=1; i<configLength; i++) {
-    cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG+i));
+  for (uint16_t i = 1; i < configLength; i++)
+  {
+    cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG + i));
   }
   cmdMessenger.sendCmdEnd();
 }
@@ -1031,8 +1053,9 @@ void OnSetLcdDisplayI2C()
 
 void readButtons()
 {
-  if (millis()-lastButtonUpdate <= MF_BUTTON_DEBOUNCE_MS) return;
-  lastButtonUpdate= millis();
+  if (millis() - lastButtonUpdate <= MF_BUTTON_DEBOUNCE_MS)
+    return;
+  lastButtonUpdate = millis();
   for (int i = 0; i != buttonsRegistered; i++)
   {
     buttons[i].update();
@@ -1041,7 +1064,8 @@ void readButtons()
 
 void readEncoder()
 {
-  if (millis()-lastEncoderUpdate < 1) return;
+  if (millis() - lastEncoderUpdate < 1)
+    return;
   lastEncoderUpdate = millis();
   for (int i = 0; i != encodersRegistered; i++)
   {
@@ -1052,14 +1076,16 @@ void readEncoder()
 #if MF_ANALOG_SUPPORT == 1
 void readAnalog()
 {
-  if (millis()-lastAnalogAverage > 10) {
+  if (millis() - lastAnalogAverage > 10)
+  {
     for (int i = 0; i != analogRegistered; i++)
     {
       analog[i].readBuffer();
     }
     lastAnalogAverage = millis();
   }
-  if (millis()-lastAnalogRead < 50) return;
+  if (millis() - lastAnalogRead < 50)
+    return;
   lastAnalogRead = millis();
   for (int i = 0; i != analogRegistered; i++)
   {
