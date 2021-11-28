@@ -90,8 +90,8 @@ void MFShifter::test()
 void MFShifter::updateShiftRegister()
 {
    digitalWrite(_latchPin, LOW);
-   for (int i = _moduleCount; i >=0 ; i--) {
-      shiftOut(_dataPin, _clockPin, MSBFIRST, (_output >> i*8)); //LSBFIRST, MSBFIRST,
+   for (uint8_t i = _moduleCount; i>0 ; i--) {
+      shiftOut(_dataPin, _clockPin, MSBFIRST, (_output >> ((i-1)*8))); //LSBFIRST, MSBFIRST,
    }    
    digitalWrite(_latchPin, HIGH);
 }

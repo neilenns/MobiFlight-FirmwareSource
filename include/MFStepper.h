@@ -31,15 +31,19 @@ public:
     void moveTo(long absolute);
     void setMaxSpeed(float speed);
     void setAcceleration(float acceleration);
-    void setZeroInReset();
     void setZero();
-    MFButton *getButton();
+    uint8_t getZeroPin();
 
 private:
-    bool _initialized;
-    bool _resetting;
+    bool    _initialized;
+    bool    _resetting;
     AccelStepper _stepper;
-    MFButton _button;
-    long _targetPos;
+    uint8_t _zeroPin;
+    uint8_t _zeroPinState;
+    long    _targetPos;
+
+    void checkZeroPin(void);
+    void setZeroInReset(void);
+
 };
 #endif

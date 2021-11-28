@@ -49,6 +49,9 @@ const encoderType encoderTypes[]{
 	{ { true, true, true, true }, 0 },
 };
 
+encoderEvent  MFEncoder::_handler = NULL;
+
+
 MFEncoder::MFEncoder() {
   _initialized = false;
 }
@@ -88,19 +91,21 @@ void MFEncoder::update()
 
   if (delta<0) dir = false;
 
-  if (abs(delta) < (MF_ENC_FAST_LIMIT /*>> _encoderType.resolutionShift*/)) {
-    // slow turn detected
-    if (dir && _handlerList[encLeft]!= NULL) {
-        (*_handlerList[encLeft])(encLeft, _pin1, _name);
-    } else if(_handlerList[encRight]!= NULL) {
-        (*_handlerList[encRight])(encRight, _pin2, _name);
-    }
-  } else {
-    // fast turn detected
-    if (dir && _handlerList[encLeftFast]!= NULL) {
-        (*_handlerList[encLeftFast])(encLeftFast,  _pin1, _name);
-    } else if(_handlerList[encRightFast]!= NULL) {
-        (*_handlerList[encRightFast])(encRightFast, _pin2, _name);
+  if(_handler) {
+    if (abs(delta) < (MF_ENC_FAST_LIMIT /*>> _encoderType.resolutionShift*/)) {
+      // slow turn detected
+      if (dir) {
+          (*_handler)(encLeft, _pin1, _name);
+      } else {
+          (*_handler)(encRight, _pin2, _name);
+      }
+    } else {
+      // fast turn detected
+      if (dir) {
+          (*_handler)(encLeftFast,  _pin1, _name);
+      } else {
+          (*_handler)(encRightFast, _pin2, _name);
+      }
     }
   }
 
@@ -115,8 +120,8 @@ void MFEncoder::update()
 
 void MFEncoder::tick(void)
 {
-	bool sig1 = digitalRead(_pin1);
-	bool sig2 = digitalRead(_pin2);
+	bool sig1 = !digitalRead(_pin1);        // to keep backwards compatibility for encoder type digitalRead must be negated
+	bool sig2 = !digitalRead(_pin2);        // to keep backwards compatibility for encoder type digitalRead must be negated
 	
 	int8_t thisState = sig1 | (sig2 << 1);
   
@@ -142,7 +147,7 @@ void MFEncoder::setPosition(int16_t newPosition) {
   _positionExt = newPosition;
 }
 
-void MFEncoder::attachHandler(uint8_t eventId, encoderEvent newHandler)
+void MFEncoder::attachHandler(encoderEvent newHandler)
 {
-  _handlerList[eventId] = newHandler;
+  _handler = newHandler;
 }

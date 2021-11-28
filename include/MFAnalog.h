@@ -30,15 +30,16 @@ extern "C"
 class MFAnalog
 {
 public:
-    MFAnalog(uint8_t pin = 1, analogEvent callback = NULL, const char * name = "Analog Input", uint8_t sensitivity = 2);
+    MFAnalog(uint8_t pin = 1, const char * name = "Analog Input", uint8_t sensitivity = 2);
+    static void attachHandler(analogEvent handler);    
     void update();
     void readBuffer();   
     const char *  _name;
     uint8_t       _pin;
     
 private:
+    static analogEvent   _handler; 
     int          _lastValue;
-    analogEvent   _handler; 
     uint8_t       _sensitivity;
 
     uint16_t ADC_Buffer[ADC_MAX_AVERAGE] = {0};     // Buffer for all values from each channel  

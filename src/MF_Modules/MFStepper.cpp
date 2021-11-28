@@ -15,26 +15,17 @@ void addStepper(MFStepper *stepper)
   MFStepper_stepperCount++;
 }
 
-void HandlerOnRelease(byte eventId, uint8_t pin, const char *name)
+MFStepper::MFStepper(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin5):
+_stepper(AccelStepper::FULL4WIRE, pin4, pin2, pin1, pin3), 
+_zeroPin(btnPin5),
+_zeroPinState(HIGH)
 {
-  if (eventId != btnOnPress)
-    return;
-  for (int i = 0; i < MFStepper_stepperCount; i++)
-  {
-    if (MFStepper_steppers[i]->getButton()->_pin == pin)
-    {
-      MFStepper_steppers[i]->setZeroInReset();
-      break;
-    }
-  }
-}
+  if(_zeroPin) {
+    pinMode(_zeroPin, INPUT_PULLUP);     // set pin to input
+  }  
 
-MFStepper::MFStepper(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin5) : _stepper(AccelStepper::FULL4WIRE, pin4, pin2, pin1, pin3), _button(btnPin5, "0")
-{
   _resetting = false;
   addStepper(this);
-  _button.attachHandler(btnOnPress, HandlerOnRelease);
-  _button.attachHandler(btnOnRelease, HandlerOnRelease);
 }
 
 void MFStepper::moveTo(long absolute)
@@ -45,6 +36,11 @@ void MFStepper::moveTo(long absolute)
     _targetPos = absolute;
     _stepper.moveTo(absolute);
   }
+}
+
+uint8_t MFStepper::getZeroPin()
+{
+  return _zeroPin; 
 }
 
 void MFStepper::setZero()
@@ -61,16 +57,25 @@ void MFStepper::setZeroInReset()
   }
 }
 
+void MFStepper::checkZeroPin()
+{
+    uint8_t newState = (uint8_t) digitalRead(_zeroPin);
+    if (newState!=_zeroPinState) {     
+      _zeroPinState = newState;
+      if(_zeroPinState == LOW) setZeroInReset();      
+    }
+}
+
 void MFStepper::update()
 {
   _stepper.run();
-  _button.update();
+  checkZeroPin();
 }
 
 void MFStepper::reset()
 {
   // we are not a auto reset stepper if this pin is 0
-  if (_button._pin == 0)
+  if (_zeroPin == 0)
     return;
 
   // if we are already resetting ignore next reset command
@@ -92,9 +97,4 @@ void MFStepper::setMaxSpeed(float speed)
 void MFStepper::setAcceleration(float acceleration)
 {
   _stepper.setAcceleration(acceleration);
-}
-
-MFButton *MFStepper::getButton()
-{
-  return &_button;
 }

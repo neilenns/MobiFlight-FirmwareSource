@@ -4,6 +4,8 @@
 
 #include "MFButton.h"
 
+buttonEvent   MFButton::_handler = NULL;
+
 MFButton::MFButton(uint8_t pin, const char * name)
 {   
   _pin  = pin;
@@ -17,31 +19,30 @@ void MFButton::update()
     uint8_t newState = (uint8_t) digitalRead(_pin);
     if (newState!=_state) {     
       _state = newState;
-      trigger();      
+      trigger(_state);      
     }
 }
 
-void MFButton::trigger()
+void MFButton::trigger(uint8_t state)
 {
-      triggerOnRelease();
-      triggerOnPress();
+    (state==LOW) ? triggerOnPress() : triggerOnRelease();
 }
 
 void MFButton::triggerOnPress()
 {
-      if (_state==LOW && _handlerList[btnOnPress]!= NULL) {
-        (*_handlerList[btnOnPress])(btnOnPress, _pin, _name);
-      }
+    if (_handler && _state==LOW) {
+        (*_handler)(btnOnPress, _pin, _name);
+    }
 }
 
 void MFButton::triggerOnRelease()
 {
-      if (_state==HIGH && _handlerList[btnOnRelease] != NULL) {
-        (*_handlerList[btnOnRelease])(btnOnRelease, _pin, _name);
-      }
+    if (_handler && _state==HIGH) {
+        (*_handler)(btnOnRelease, _pin, _name);
+    }
 }
 
-void MFButton::attachHandler(byte eventId, buttonEvent newHandler)
+void MFButton::attachHandler(buttonEvent newHandler)
 {
-  _handlerList[eventId] = newHandler;
+  _handler = newHandler;
 }

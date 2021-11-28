@@ -3,7 +3,7 @@
 	"build": {
 		"dockerfile": "Dockerfile",
 		// [Optional] You can use build args to set options. e.g. 'VARIANT' below affects the image in the Dockerfile
-		"args": { "VARIANT": "debian" }
+		"args": { "VARIANT": "ubuntu" }
 	},
 	"extensions": [
 		"platformio.platformio-ide",

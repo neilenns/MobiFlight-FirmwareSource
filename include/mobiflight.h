@@ -87,7 +87,7 @@ void AddServo(int pin);
 void ClearServos();
 void AddLcdDisplay(uint8_t address, uint8_t cols, uint8_t lines, char const *name);
 void ClearLcdDisplays();
-void handlerOnRelease(uint8_t eventId, uint8_t pin, const char *name);
+void handlerOnButton(uint8_t eventId, uint8_t pin, const char *name);
 void handlerOnEncoder(uint8_t eventId, uint8_t pin, const char *name);
 void OnSetConfig();
 void resetConfig();

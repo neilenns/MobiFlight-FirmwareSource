@@ -4,13 +4,14 @@
 
 #include "MFAnalog.h"
 
-MFAnalog::MFAnalog(uint8_t pin, analogEvent callback, const char * name, uint8_t sensitivity)
+analogEvent   MFAnalog::_handler = NULL; 
+
+MFAnalog::MFAnalog(uint8_t pin, const char * name, uint8_t sensitivity)
 {   
   _sensitivity = sensitivity;  
   _pin  = pin;
   _name = name;
   _lastValue = 0;
-  _handler = callback; 
   pinMode(_pin, INPUT_PULLUP);      // set pin to input. Could use OUTPUT for analog, but shows the intention :-)
   analogRead(_pin);                 // turn on pullup resistors
 }
@@ -34,3 +35,7 @@ void MFAnalog::readBuffer(){                                // read ADC and calc
   ADC_Average_Pointer &= (ADC_MAX_AVERAGE-1);               // limit max. values for floating average
 }
 
+void MFAnalog::attachHandler(analogEvent newHandler)
+{
+  _handler = newHandler;
+}

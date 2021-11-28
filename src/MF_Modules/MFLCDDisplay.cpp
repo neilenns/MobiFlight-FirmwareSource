@@ -13,12 +13,16 @@ void MFLCDDisplay::display(const char *string)
 {
   if (!_initialized)
     return;
-  char readBuffer[21] = "";
-  for (byte l = 0; l != _lines; l++)
+  for (uint8_t line = 0; line != _lines; line++)
   {
-    _lcdDisplay->setCursor(0, l);
-    memcpy(readBuffer, string + _cols * l, _cols);
-    _lcdDisplay->print(readBuffer);
+    _lcdDisplay->setCursor(0, line);
+    for (uint8_t col = 0; col < _cols; col++)
+    {
+      uint8_t char2print = string[(_cols * line) + col];
+      if (!char2print)                                     // just to be sure not to print after NULL termination
+        return;
+      _lcdDisplay->write(char2print);
+    }
   }
 }
 
