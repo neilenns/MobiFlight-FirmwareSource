@@ -4,10 +4,10 @@
 #include <MFEncoder.h>
 #include <MFAnalog.h>
 
-#define MF_BUTTON_DEBOUNCE_MS   10      // time between updating the buttons
-#define MF_SERVO_DELAY_MS       5       // Time between servo updates
-#define MF_ANALOGAVERAGE_DELAY_MS 10    // time between updating the analog average calculation
-#define MF_ANALOGREAD_DELAY_MS  50      // time between sending analog values
+#define MF_BUTTON_DEBOUNCE_MS 10     // time between updating the buttons
+#define MF_SERVO_DELAY_MS 5          // Time between servo updates
+#define MF_ANALOGAVERAGE_DELAY_MS 10 // time between updating the analog average calculation
+#define MF_ANALOGREAD_DELAY_MS 50    // time between sending analog values
 
 enum
 {
@@ -60,7 +60,8 @@ enum
   kSetLcdDisplayI2C,     // 25
   kSetModuleBrightness,  // 26
   kSetShiftRegisterPins, // 27
-  kAnalogChange          // 28
+  kAnalogChange,         // 28
+  kMemory,               // 29
 };
 
 void attachCommandCallbacks();
@@ -127,6 +128,5 @@ void handlerOnAnalogChange(int value, uint8_t pin, const char *name);
 void OnInitShiftRegister();
 void OnSetShiftRegisterPins();
 void AddShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name);
-
-
+void OnGetMemory();
 #endif
