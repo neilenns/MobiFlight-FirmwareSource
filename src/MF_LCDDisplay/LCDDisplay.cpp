@@ -7,6 +7,9 @@
 #include "mobiflight.h"
 #include "MFLCDDisplay.h"
 #include "LCDDisplay.h"
+#include "IPC.h"
+
+volatile double values[8];
 
 namespace LCDDisplay
 {
@@ -44,11 +47,32 @@ namespace LCDDisplay
 
     void OnSet()
     {
+#ifdef DEBUG2CMDMESSENGER
+        cmdMessenger.sendCmd(kDebug, "Processing the values");
+#endif
         int   address = cmdMessenger.readInt16Arg();
         char *output  = cmdMessenger.readStringArg();
         cmdMessenger.unescape(output);
-        lcd_I2C[address]->display(output);
-        setLastCommandMillis();
+
+        Serial.println(output);
+
+        // 25,0,124.850/130.855/124.850/124.850/110.50/113.15/110.50/113.90                                                                                                                                                                                     ;
+        // There are 8 frequencies to check
+        char  *frequencyValue = strtok(output, "|");
+        double convertedValue;
+
+        for (int i = 0; i < 8 && frequencyValue != 0; i++) {
+            convertedValue = atof(frequencyValue);
+
+            if (values[i] != convertedValue) {
+                values[i] = convertedValue;
+#ifdef DEBUG2CMDMESSENGER
+                cmdMessenger.sendCmd(kDebug, "Processed a value");
+#endif
+                rp2040.fifo.push((ChangedValue)i);
+            }
+            frequencyValue = strtok(0, "|");
+        }
     }
 } // namespace
 

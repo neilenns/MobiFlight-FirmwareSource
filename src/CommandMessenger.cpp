@@ -92,7 +92,7 @@ void attachCommandCallbacks()
 void OnUnknownCommand()
 {
     lastCommand = millis();
-    cmdMessenger.sendCmd(kStatus, F("n/a"));
+    cmdMessenger.sendCmd(kDebug, F("n/a"));
 }
 
 uint32_t getLastCommandMillis()
