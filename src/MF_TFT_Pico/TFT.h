@@ -6,8 +6,8 @@
 #define MAX_CLIPPING_RADIUS 300
 
 extern TFT_eSPI    tft;
-extern TFT_eSprite spr[];
-extern uint16_t   *sprPtr[];
+extern TFT_eSprite spr;
+extern uint16_t   *sprPtr;
 
 template <typename T>
 static inline void
@@ -21,6 +21,7 @@ swap_coord(T &a, T &b)
 namespace TFT
 {
     void init();
+    void draw();
     void setClippingArea(int32_t ClippingX0, int32_t ClippingY0, int32_t ClippingXwidth, int32_t ClippingYwidth, int32_t clippingRadiusOuter, int32_t clippingRadiusInner);
     void drawLineClipped(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color, bool sel);
     void fillHalfCircleSprite(int32_t x0, int32_t y0, int32_t r, uint32_t colorUpper, uint32_t colorLower, bool sel);

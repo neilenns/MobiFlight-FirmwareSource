@@ -34,7 +34,6 @@
 #endif
 
 #include "TFT.h"
-#include "BouncingCircles.h"
 
 #define MF_BUTTON_DEBOUNCE_MS     10 // time between updating the buttons
 #define MF_ENCODER_DEBOUNCE_MS    1  // time between encoder updates
@@ -155,7 +154,6 @@ void ResetBoard()
 // ************************************************************
 void setup()
 {
-    Serial.println("Core 0 ready to go");
     MFeeprom.init();
     attachCommandCallbacks();
     cmdMessenger.printLfCr();
@@ -209,16 +207,10 @@ void loop()
 void setup1()
 {
     TFT::init();
-    BouncingCircles::initRandom(); // random seems not to work on core1
 }
 
 // Loop on the second core.
 void loop1()
 {
-    demoMillis = millis();
-    BouncingCircles::init();
-    do {
-        BouncingCircles::loop();
-    } while (millis() - demoMillis < 5000);
-    BouncingCircles::stop();
+    TFT::draw();
 }

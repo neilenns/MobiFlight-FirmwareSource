@@ -10,6 +10,7 @@
 #include "Encoder.h"
 #include "Output.h"
 #include "ArduinoUniqueID.h"
+#include "TFT.h"
 
 #if MF_ANALOG_SUPPORT == 1
 #include "Analog.h"
@@ -438,6 +439,7 @@ void OnGetInfo()
     cmdMessenger.sendCmdArg(serial);
     cmdMessenger.sendCmdArg(VERSION);
     cmdMessenger.sendCmdEnd();
+    rp2040.fifo.push(1); // Signal that there's new data to display
 }
 
 bool getStatusConfig()
