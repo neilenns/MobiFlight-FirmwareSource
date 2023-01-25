@@ -33,6 +33,9 @@
 #include "DigInMux.h"
 #endif
 
+#include "TFT.h"
+#include "BouncingCircles.h"
+
 #define MF_BUTTON_DEBOUNCE_MS     10 // time between updating the buttons
 #define MF_ENCODER_DEBOUNCE_MS    1  // time between encoder updates
 #define MF_INSHIFTER_POLL_MS      10 // time between input shift reg updates
@@ -43,6 +46,7 @@
 
 bool                powerSavingMode   = false;
 const unsigned long POWER_SAVING_TIME = 60 * 15; // in seconds
+uint32_t            demoMillis;
 
 #if MF_MUX_SUPPORT == 1
 MFMuxDriver MUX;
@@ -151,7 +155,7 @@ void ResetBoard()
 // ************************************************************
 void setup()
 {
-    Serial.begin(115200);
+    Serial.println("Core 0 ready to go");
     MFeeprom.init();
     attachCommandCallbacks();
     cmdMessenger.printLfCr();
@@ -201,4 +205,20 @@ void loop()
     }
 }
 
-// mobiflight.cpp
+// Initialize the graphics on the second core.
+void setup1()
+{
+    TFT::init();
+    BouncingCircles::initRandom(); // random seems not to work on core1
+}
+
+// Loop on the second core.
+void loop1()
+{
+    demoMillis = millis();
+    BouncingCircles::init();
+    do {
+        BouncingCircles::loop();
+    } while (millis() - demoMillis < 5000);
+    BouncingCircles::stop();
+}
