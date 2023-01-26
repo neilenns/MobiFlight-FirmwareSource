@@ -47,14 +47,9 @@ namespace LCDDisplay
 
     void OnSet()
     {
-#ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kDebug, "Processing the values");
-#endif
         int   address = cmdMessenger.readInt16Arg();
         char *output  = cmdMessenger.readStringArg();
         cmdMessenger.unescape(output);
-
-        Serial.println(output);
 
         // 25,0,124.850/130.855/124.850/124.850/110.50/113.15/110.50/113.90                                                                                                                                                                                     ;
         // There are 8 frequencies to check
@@ -66,9 +61,6 @@ namespace LCDDisplay
 
             if (values[i] != convertedValue) {
                 values[i] = convertedValue;
-#ifdef DEBUG2CMDMESSENGER
-                cmdMessenger.sendCmd(kDebug, "Processed a value");
-#endif
                 rp2040.fifo.push((ChangedValue)i);
             }
             frequencyValue = strtok(0, "|");
