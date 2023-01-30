@@ -39,9 +39,9 @@ namespace TFT
 
     void writeString(const ChangedValue property, const char *prefix, const char *formattedValue)
     {
-        snprintf(displayString, MAX_STRING_LENGTH, prefix, formattedValue);
-        img.drawString(displayString, 0, (int)property * fontHeight + 2, 4);
-        img.pushSprite(0, 0);
+        img.drawRightString(displayString, 0, (int)property * fontHeight + 2, 4);
+        //        img.drawString(formattedValue, 0, (int)property * fontHeight + 2, 4);
+        //        img.pushSprite(0, 0);
     }
 
     void draw()
@@ -49,39 +49,42 @@ namespace TFT
         // Wait until we are signaled. This is a blocking call.
         ChangedValue property = (ChangedValue)rp2040.fifo.pop();
 
+        Serial.print("Drawing ");
+        Serial.println(property);
+
         // Arduino can't format floats in snprintf so use dtostrf to get the formatted value.
         switch (property) {
         case ChangedValue::Com1Active:
             dtostrf(values[(int)property], 7, 3, formattedValue);
-            writeString(property, "COM1 %s", formattedValue);
+            writeString(property, "COM1", formattedValue);
             break;
         case ChangedValue::Com1Standby:
             dtostrf(values[(int)property], 7, 3, formattedValue);
-            writeString(property, "COM1 STBY %s", formattedValue);
+            writeString(property, "COM1 STBY", formattedValue);
             break;
         case ChangedValue::Com2Active:
             dtostrf(values[(int)property], 7, 3, formattedValue);
-            writeString(property, "COM2 %s", formattedValue);
+            writeString(property, "COM2", formattedValue);
             break;
         case ChangedValue::Com2Standby:
             dtostrf(values[(int)property], 7, 3, formattedValue);
-            writeString(property, "COM2 STBY %s", formattedValue);
+            writeString(property, "COM2 STBY", formattedValue);
             break;
         case ChangedValue::Nav1Active:
             dtostrf(values[(int)property], 6, 2, formattedValue);
-            writeString(property, "NAV1 %s", formattedValue);
+            writeString(property, "NAV1", formattedValue);
             break;
         case ChangedValue::Nav1Standby:
             dtostrf(values[(int)property], 6, 2, formattedValue);
-            writeString(property, "NAV1 STBY %s", formattedValue);
+            writeString(property, "NAV1 STBY", formattedValue);
             break;
         case ChangedValue::Nav2Active:
             dtostrf(values[(int)property], 6, 2, formattedValue);
-            writeString(property, "NAV2 %s", formattedValue);
+            writeString(property, "NAV2", formattedValue);
             break;
         case ChangedValue::Nav2Standby:
             dtostrf(values[(int)property], 6, 2, formattedValue);
-            writeString(property, "NAV2 STBY %s", formattedValue);
+            writeString(property, "NAV2 STBY", formattedValue);
             break;
         }
     }
